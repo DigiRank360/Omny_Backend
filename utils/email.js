@@ -3,6 +3,18 @@ import nodemailer from 'nodemailer';
 export const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || 'support@omnyxglobal.in';
 export const SALES_EMAIL = process.env.SALES_EMAIL || 'sales@omnyxglobal.in';
 
+export function logEmailFailure(context, error) {
+  const message = String(error?.message || 'Unknown email error')
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[email]')
+    .replace(/[\r\n]+/g, ' ');
+  console.error(`${context} email failed`, {
+    code: error?.code,
+    responseCode: error?.responseCode,
+    command: error?.command,
+    message,
+  });
+}
+
 export async function sendEmail({ to, replyTo, subject, text }) {
   const {
     SMTP_HOST,
@@ -31,6 +43,10 @@ export async function sendEmail({ to, replyTo, subject, text }) {
     port: Number(SMTP_PORT),
     secure: SMTP_SECURE ? SMTP_SECURE === 'true' : Number(SMTP_PORT) === 465,
     auth: { user, pass },
+    dnsTimeout: 5000,
+    connectionTimeout: 5000,
+    greetingTimeout: 5000,
+    socketTimeout: 10000,
   });
 
   return transporter.sendMail({ from, to, replyTo, subject, text });

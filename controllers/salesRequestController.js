@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import Product from '../models/Product.js';
 import ProductEnquiry from '../models/ProductEnquiry.js';
 import SalesRequest from '../models/SalesRequest.js';
-import { SALES_EMAIL, SUPPORT_EMAIL, sendEmail } from '../utils/email.js';
+import { SALES_EMAIL, SUPPORT_EMAIL, logEmailFailure, sendEmail } from '../utils/email.js';
 
 function dealerDetails(dealer) {
   return [
@@ -54,7 +54,8 @@ export const sendProductEnquiry = async (req, res) => {
       subject: `Dealer enquiry: ${productName}`,
       text: `${dealerDetails(req.dealer)}\n\nProduct: ${productName}\nGrade: ${product.grade}\nDealer price: INR ${product.price}\nAvailable stock: ${product.stock}\nEnquiry ID: ${enquiry._id}\n\nPlease contact the dealer about this product enquiry.`,
     });
-  } catch {
+  } catch (error) {
+    logEmailFailure('Dealer product enquiry', error);
     emailSent = false;
   }
   res.status(201).json({
@@ -118,7 +119,8 @@ export const createSalesRequest = async (req, res) => {
       subject: `Dealer sales request: ${productName} (${quantity} units)`,
       text: `${dealerDetails(req.dealer)}\n\nProduct: ${productName}\nGrade: ${product.grade}\nRequested quantity: ${quantity}\nDealer price at request: INR ${product.price}\nAvailable stock at request: ${product.stock}\nRequest ID: ${request._id}\n\nPlease follow up with the dealer.`,
     });
-  } catch {
+  } catch (error) {
+    logEmailFailure('Dealer sales request', error);
     emailSent = false;
   }
 
