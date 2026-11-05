@@ -1,3 +1,4 @@
+
 import mongoose from 'mongoose';
 
 const productSchema = new mongoose.Schema({
@@ -10,6 +11,7 @@ const productSchema = new mongoose.Schema({
   stock: { type: Number, required: true, min: 0, default: 0 },
   description: { type: String, trim: true, default: '' },
   image: { type: String, default: '' },
+  imagePublicId: { type: String, default: '' },
   active: { type: Boolean, default: true },
 }, { timestamps: true });
 
