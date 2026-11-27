@@ -2,8 +2,7 @@ import Banner from '../models/Banner.js';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import fs from 'fs/promises';
-
-const UPLOAD_DIR = './public/uploads/banners';
+import { BANNER_UPLOAD_DIR } from '../config/paths.js';
 
 export const getBanners = async (req, res) => {
   const banners = await Banner.find().sort({ type: 1, createdAt: -1 });
@@ -28,12 +27,12 @@ export const createBanner = async (req, res) => {
 
   try {
     // Ensure upload directory exists
-    await fs.mkdir(UPLOAD_DIR, { recursive: true });
+    await fs.mkdir(BANNER_UPLOAD_DIR, { recursive: true });
 
     // Generate filename with UUID
     const ext = path.extname(req.file.originalname);
     const filename = `${uuidv4()}${ext}`;
-    const filepath = path.join(UPLOAD_DIR, filename);
+    const filepath = path.join(BANNER_UPLOAD_DIR, filename);
 
     // Move file from temp to upload directory
     await fs.writeFile(filepath, req.file.buffer);
@@ -80,7 +79,7 @@ export const deleteBanner = async (req, res) => {
 
   // Delete file from filesystem
   try {
-    const filepath = path.join(UPLOAD_DIR, banner.filename);
+    const filepath = path.join(BANNER_UPLOAD_DIR, banner.filename);
     await fs.unlink(filepath);
   } catch (error) {
     console.error('Error deleting file:', error);

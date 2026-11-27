@@ -4,8 +4,7 @@ import mongoose from 'mongoose';
 import path from 'path';
 import fs from 'fs/promises';
 import Banner from '../models/Banner.js';
-
-const UPLOAD_DIR = './public/uploads/banners';
+import { BANNER_UPLOAD_DIR } from '../config/paths.js';
 
 async function main() {
   try {
@@ -47,7 +46,7 @@ async function main() {
         continue;
       }
 
-      const filepath = path.join(UPLOAD_DIR, banner.filename);
+      const filepath = path.join(BANNER_UPLOAD_DIR, banner.filename);
       try {
         await fs.stat(filepath);
         console.log(`   ✓ File exists: ${filepath}`);

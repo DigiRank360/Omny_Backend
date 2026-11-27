@@ -1,23 +1,7 @@
 import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
+import app from './app.js';
 import connectDB from './config/db.js';
-import routes from './routes/index.js';
 import seedAdmin from './utils/seedAdmin.js';
-import { notFound, errorHandler } from './middleware/error.js';
-
-const app = express();
-const clientOrigins = (process.env.CLIENT_URLS || 'http://localhost:3000,http://localhost:3001')
-  .split(',')
-  .map(origin => origin.trim())
-  .filter(Boolean);
-app.use(cors({ origin: clientOrigins }));
-app.use(express.json({ limit: '16mb' }));
-app.use(express.static('public'));
-app.get('/api/health', (_, res) => res.json({ ok: true }));
-app.use('/api', routes);
-app.use(notFound);
-app.use(errorHandler);
 
 connectDB().then(async () => {
   await seedAdmin();
