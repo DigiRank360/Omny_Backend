@@ -73,6 +73,77 @@ export const getVendor = async (req, res) => {
   res.json(vendor);
 };
 
+export const getVendorsForCRM = async (req, res) => {
+  try {
+    const { q = '', page = 1, limit = 50 } = req.query;
+    if (typeof q !== 'string') {
+      return res.status(400).json({ success: false, message: 'Invalid search query' });
+    }
+
+    const pageNumber = Math.max(1, Number(page) || 1);
+    const pageSize = Math.min(100, Math.max(1, Number(limit) || 50));
+    const filter = { status: 'approved' };
+
+    if (q.trim()) {
+      const expression = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      filter.$or = [
+        { companyName: expression },
+        { contactName: expression },
+        { mobile: expression },
+        { email: expression },
+        { gstNumber: expression },
+        { city: expression },
+      ];
+    }
+
+    const [vendors, total] = await Promise.all([
+      Vendor.find(filter)
+        .select('_id companyName gstNumber address city state pincode businessType productCategories stockOffers contactName designation mobile alternateMobile email status createdAt updatedAt')
+        .sort('-createdAt')
+        .skip((pageNumber - 1) * pageSize)
+        .limit(pageSize)
+        .lean(),
+      Vendor.countDocuments(filter),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      vendors,
+      pagination: {
+        total,
+        page: pageNumber,
+        limit: pageSize,
+        pages: Math.ceil(total / pageSize),
+      },
+    });
+  } catch (error) {
+    console.error('CRM Vendor API Error:', error);
+    res.status(500).json({ success: false, message: 'Unable to fetch vendors' });
+  }
+};
+
+export const getVendorForCRM = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!/^[a-f\d]{24}$/i.test(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid vendor ID' });
+    }
+
+    const vendor = await Vendor.findOne({ _id: id, status: 'approved' })
+      .select('-attachments -bankName -bankBranch -accountHolderName -accountNumber -ifscCode')
+      .lean();
+
+    if (!vendor) {
+      return res.status(404).json({ success: false, message: 'Approved vendor not found' });
+    }
+
+    res.status(200).json({ success: true, vendor });
+  } catch (error) {
+    console.error('CRM Single Vendor API Error:', error);
+    res.status(500).json({ success: false, message: 'Unable to fetch vendor' });
+  }
+};
+
 export const updateVendor = async (req, res) => {
   const { status, adminNote } = req.body;
   const vendor = await Vendor.findByIdAndUpdate(req.params.id, { status, adminNote }, { new: true, runValidators: true });

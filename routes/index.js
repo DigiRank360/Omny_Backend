@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { protect, protectDealer } from '../middleware/auth.js';
+import { crmApiAuth } from '../middleware/crmApiAuth.js';
 import { dealerLogin, login } from '../controllers/authController.js';
 import { registerDealer, getDealerProfile, getDealers, updateDealer, deleteDealer } from '../controllers/dealerController.js';
 import { createCategory, createProduct, deleteCategory, deleteProduct, getCategories, getProducts, getStoreProducts, updateCategory, updateProduct } from '../controllers/catalogController.js';
-import { deleteVendor, getVendor, getVendors, registerVendor, updateVendor } from '../controllers/vendorController.js';
+import { deleteVendor, getVendor, getVendorForCRM, getVendors, getVendorsForCRM, registerVendor, updateVendor } from '../controllers/vendorController.js';
 import { createSalesRequest, getProductEnquiries, getSalesRequests, sendProductEnquiry, updateProductEnquiry, updateSalesRequest } from '../controllers/salesRequestController.js';
 import { getBanners, getActiveBanners, createBanner, updateBannerStatus, deleteBanner } from '../controllers/bannerController.js';
 
@@ -30,6 +31,10 @@ r.get('/vendors', protect, wrap(getVendors));
 r.get('/vendors/:id', protect, wrap(getVendor));
 r.patch('/vendors/:id', protect, wrap(updateVendor));
 r.delete('/vendors/:id', protect, wrap(deleteVendor));
+
+// OmnyX CRM Vendor Integration
+r.get('/integration/vendors', crmApiAuth, wrap(getVendorsForCRM));
+r.get('/integration/vendors/:id', crmApiAuth, wrap(getVendorForCRM));
 
 r.get('/sales-requests', protect, wrap(getSalesRequests));
 r.patch('/sales-requests/:id', protect, wrap(updateSalesRequest));
